@@ -1,5 +1,7 @@
 package ru.netology
 
+import javax.swing.border.EmptyBorder
+
 class ChatNotFoundException(message: String) : Exception(message)
 
 data class Chat(
@@ -119,26 +121,22 @@ object ChatService {
     //- количество сообщений. После того как вызвана эта функция, все отданные сообщения автоматически считаются прочитанными.
     // Вывод списка сообщений
     fun getMessageInfo(chatId: Int, messageId: Int, count: Int): List<Messages> {
-        val chat = chats.find { it.chatId == chatId }?: throw ChatNotFoundException("Чат не найден")
+        val chat = chats.find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
         val message = chat.messages.find { it.messageId == messageId }
-        if(message!= null){
+        if (message != null) {
             messagesInfo.add(message)
         }
-        messagesInfo.forEach{it.readingStatus == true}
+        messagesInfo.forEach { it.readingStatus == true }
         return messagesInfo
     }
 
     // Вывод списка последних сообщений из чатов (можно в виде списка строк). Если сообщений в чате нет (все были удалены), то пишется «нет сообщений» (п.3)
-    fun lastMessages():List<Messages> {
-        chats.forEach {
-            //val message = it.messages.takeLast(1)
-            if(it.messages.isNotEmpty()){
-                val message = it.messages.last()
-                messagesLast.add(message)
-            }
-            println("Нет сообщений")
+    fun lastMessages(): String {
+        var messageLast = ""
+        chats.map { it ->
+            if (it.messages.count() > 0) messageLast = it.messages.last().toString() else messageLast = "Нет сообщений"
         }
-        return messagesLast
+        return messageLast
     }
 
 
@@ -207,7 +205,7 @@ fun main() {
 
     // TODO
     println("\nВывод списка последних сообщений из чатов")
-    chatService.lastMessages()
+    println(chatService.lastMessages())
 
     println("\nВывод списка сообщений из чатов")
     println(chatService.getMessageInfo(2, 1, 1))
