@@ -1,7 +1,5 @@
 package ru.netology
 
-import javax.swing.border.EmptyBorder
-
 class ChatNotFoundException(message: String) : Exception(message)
 
 data class Chat(
@@ -23,7 +21,6 @@ data class Messages(
 object ChatService {
     private var chats = mutableListOf<Chat>()
     private var messagesAll = mutableListOf<Messages>()
-    private var messagesLast = mutableListOf<Messages>()
     private var messagesInfo = mutableListOf<Messages>()
 
     // База существующих пользователей в социальном сервисе
@@ -32,6 +29,7 @@ object ChatService {
 
     private var chId = 0
     private var mId = 0
+
     /* ************************************************
     Возможности ChatService для пользователя:
     1. (+)Видеть, сколько чатов не прочитано (например, service.getUnreadChatsCount). В каждом из таких чатов есть хотя бы одно непрочитанное сообщение.
@@ -52,7 +50,7 @@ object ChatService {
             val message =
                 Messages(
                     messageId = mId++,
-                    messageСhatId = chId++,
+                    messageСhatId = chId,
                     authorMessageId = hashFio.get(userFio),
                     message = message
                 )
@@ -72,6 +70,7 @@ object ChatService {
         } else {
             throw ChatNotFoundException("Пользователь не найден. Вам и/или Вашему собеседнику необходимо зарегистрироваться в социальном сервисе")
         }
+        chId++
 
     }
 
@@ -120,23 +119,20 @@ object ChatService {
     //- ID собеседника;
     //- количество сообщений. После того как вызвана эта функция, все отданные сообщения автоматически считаются прочитанными.
     // Вывод списка сообщений
-    fun getMessageInfo(chatId: Int, messageId: Int, count: Int): List<Messages> {
+    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {//
         val chat = chats.find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
-        val message = chat.messages.find { it.messageId == messageId }
-        if (message != null) {
-            messagesInfo.add(message)
-        }
-        messagesInfo.forEach { it.readingStatus == true }
-        return messagesInfo
+        val message = chat.messages.filter { it.authorMessageId == authorMessageId }.take(count)
+        message.forEach { it.readingStatus == true }
+        return message
     }
 
+
     // Вывод списка последних сообщений из чатов (можно в виде списка строк). Если сообщений в чате нет (все были удалены), то пишется «нет сообщений» (п.3)
-    fun lastMessages(): String {
-        var messageLast = ""
-        chats.map { it ->
-            if (it.messages.count() > 0) messageLast = it.messages.last().toString() else messageLast = "Нет сообщений"
+    fun lastMessages(): List<String> = chats.map {
+        if (it.messages.last().message == "") {
+            it.messages.add(it.messages.last().copy(message = "Нет сообщений"))
         }
-        return messageLast
+        it.messages.last().message
     }
 
 
@@ -173,8 +169,7 @@ fun main() {
     println("Создение чата")
     chatService.add("Malov", "Batrakov", "Text1")
     chatService.add("Malov", "Abramov", "Text2")
-    chatService.printChats()
-    println(chatService.getMessages())
+    println(chatService.getChats())
 
     println("\nВозвращение списка чатов")
     chatService.getChats()
@@ -184,11 +179,8 @@ fun main() {
     println(chatService.getUnreadChatsCount())
 
     println("\nУдаление сообщения")
-    println(chatService.getMessages())
-    chatService.printMessage()
-    chatService.deleteMessages(0, 1)
-    chatService.printMessage()
-    println(chatService.getMessages())
+    println(chatService.getChats())
+    chatService.deleteMessages(0, 0)
     println(chatService.getChats())
 
     println("\nУдаление чата")
@@ -197,16 +189,18 @@ fun main() {
 
 
     println("\nСоздание нового сообщения")
-    chatService.addMessages(2, "Batrakov", "Текст3")
+    println(chatService.getMessages())
+    chatService.addMessages(1, "Batrakov", "Текст4")
+    chatService.addMessages(1, "Malov", "Текст5")
     println(chatService.getMessages())
     println(chatService.getChats())
 
     chatService.registration("Petrov")
 
-    // TODO
     println("\nВывод списка последних сообщений из чатов")
     println(chatService.lastMessages())
 
     println("\nВывод списка сообщений из чатов")
-    println(chatService.getMessageInfo(2, 1, 1))
+    println(chatService.getMessageInfo(1, 5, 1))
+    println(chatService.getMessageInfo(1, 5, 2))
 }
