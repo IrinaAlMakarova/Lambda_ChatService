@@ -21,7 +21,6 @@ data class Messages(
 object ChatService {
     private var chats = mutableListOf<Chat>()
     private var messagesAll = mutableListOf<Messages>()
-    private var messagesInfo = mutableListOf<Messages>()
 
     // База существующих пользователей в социальном сервисе
     var hashFio: HashMap<String, Int> =
@@ -67,11 +66,8 @@ object ChatService {
                 messages = messages
             )
             chats.add(chat)
-        } else {
-            throw ChatNotFoundException("Пользователь не найден. Вам и/или Вашему собеседнику необходимо зарегистрироваться в социальном сервисе")
-        }
+        } else throw ChatNotFoundException("Пользователь не найден. Вам и/или Вашему собеседнику необходимо зарегистрироваться в социальном сервисе")
         chId++
-
     }
 
     // Вывод списка чатов (п.2)
@@ -85,12 +81,18 @@ object ChatService {
     }
 
     // Удаление сообщения (п.6)
+    //fun deleteMessages(messageId: Int, chatId: Int) {
+    //    messagesAll.removeAll { it.messageId == messageId && it.messageСhatId == chatId }
+    //    val chat = chats.find { it.chatId == chatId }
+    //    if (chat != null) {
+    //        chat.messages.removeIf { it.messageId == messageId }
+    //    }
+    //}
     fun deleteMessages(messageId: Int, chatId: Int) {
         messagesAll.removeAll { it.messageId == messageId && it.messageСhatId == chatId }
-        val chat = chats.find { it.chatId == chatId }
-        if (chat != null) {
-            chat.messages.removeIf { it.messageId == messageId }
-        }
+        chats
+            .find { it.chatId == chatId }
+            ?.messages?.removeIf { it.messageId == messageId }
     }
 
     // Удаление чата (п.8)
@@ -100,6 +102,20 @@ object ChatService {
     }
 
     // Создание нового сообщения (п.5)
+    //fun addMessages(messageСhatId: Int, userFio: String, message: String) {
+    //    val message = Messages(
+    //        messageId = mId++,
+    //        messageСhatId = messageСhatId,
+    //        authorMessageId = hashFio.get(userFio),
+    //        message = message
+    //    )
+    //    messagesAll.add(message)
+
+    //    val chat = chats.find { it.chatId == messageСhatId }
+    //    if (chat != null) {
+    //        chat.messages.add(message)
+    //    }
+    //}
     fun addMessages(messageСhatId: Int, userFio: String, message: String) {
         val message = Messages(
             messageId = mId++,
@@ -109,38 +125,54 @@ object ChatService {
         )
         messagesAll.add(message)
 
-        val chat = chats.find { it.chatId == messageСhatId }
-        if (chat != null) {
-            chat.messages.add(message)
-        }
+        chats
+            .find { it.chatId == messageСhatId }
+            ?.messages?.add(message)
     }
 
     //Получить список сообщений из чата, указав(п.4):
     //- ID собеседника;
     //- количество сообщений. После того как вызвана эта функция, все отданные сообщения автоматически считаются прочитанными.
     // Вывод списка сообщений
-    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {//
-        val chat = chats.find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
-        val message = chat.messages.filter { it.authorMessageId == authorMessageId }.take(count)
+    //fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {//
+    //    val chat = chats.find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
+    //    val message = chat.messages.filter { it.authorMessageId == authorMessageId }.take(count)
+    //    message.forEach { it.readingStatus == true }
+    //    return message
+    //}
+    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {
+        val chat = chats
+            .find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
+        val message = chat.messages
+            .filter { it.authorMessageId == authorMessageId }
+            .take(count)
+
         message.forEach { it.readingStatus == true }
         return message
     }
 
 
     // Вывод списка последних сообщений из чатов (можно в виде списка строк). Если сообщений в чате нет (все были удалены), то пишется «нет сообщений» (п.3)
+    //fun lastMessages(): List<String> = chats.map {
+    //    if (it.messages.last().message == "") {
+    //        it.messages.add(it.messages.last().copy(message = "Нет сообщений"))
+    //    }
+    //    it.messages.last().message
+    //}
     fun lastMessages(): List<String> = chats.map {
-        if (it.messages.last().message == "") {
-            it.messages.add(it.messages.last().copy(message = "Нет сообщений"))
-        }
+        if (it.messages.last().message.isEmpty()) it.messages.add(it.messages.last().copy(message = "Нет сообщений"))
         it.messages.last().message
     }
 
 
     // Регистрация в социальном сервисе
+    //fun registration(userFio: String) {
+    //    if (hashFio.contains(userFio) == false) {
+    //        hashFio.put(userFio, (hashFio.size + 1))
+    //    }
+    //}
     fun registration(userFio: String) {
-        if (hashFio.contains(userFio) == false) {
-            hashFio.put(userFio, (hashFio.size + 1))
-        }
+        if (hashFio.contains(userFio) == false) hashFio.put(userFio, (hashFio.size + 1))
     }
 
     // Вывод списка сообщений
