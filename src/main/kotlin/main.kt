@@ -43,6 +43,7 @@ object ChatService {
     8. (+)Удалить чат, т.е. целиком удалить всю переписку.
     * *************************************************/
 
+
     // Создание чата (п.7)
     fun add(userFio: String, interlocutorFio: String, message: String) {
         if (hashFio.contains(userFio) == true && hashFio.contains(interlocutorFio) == true) {
