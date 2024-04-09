@@ -45,7 +45,7 @@ object ChatService {
 
 
     // Создание чата (п.7)
-    fun add(userFio: String, interlocutorFio: String, message: String) {
+    fun add(userFio: String, interlocutorFio: String, message: String): Int {
         if (hashFio.contains(userFio) == true && hashFio.contains(interlocutorFio) == true) {
             val message =
                 Messages(
@@ -69,6 +69,7 @@ object ChatService {
             chats.add(chat)
         } else throw ChatNotFoundException("Пользователь не найден. Вам и/или Вашему собеседнику необходимо зарегистрироваться в социальном сервисе")
         chId++
+        return chId
     }
 
     // Вывод списка чатов (п.2)
@@ -89,17 +90,19 @@ object ChatService {
     //        chat.messages.removeIf { it.messageId == messageId }
     //    }
     //}
-    fun deleteMessages(messageId: Int, chatId: Int) {
+    fun deleteMessages(messageId: Int, chatId: Int): Int {
         messagesAll.removeAll { it.messageId == messageId && it.messageСhatId == chatId }
         chats
             .find { it.chatId == chatId }
             ?.messages?.removeIf { it.messageId == messageId }
+        return chatId
     }
 
     // Удаление чата (п.8)
-    fun deleteChat(chatId: Int) {
+    fun deleteChat(chatId: Int): Int {
         chats.removeIf { it.chatId == chatId }
         messagesAll.removeIf { it.messageСhatId == chatId }
+        return chatId
     }
 
     // Создание нового сообщения (п.5)
@@ -117,7 +120,7 @@ object ChatService {
     //        chat.messages.add(message)
     //    }
     //}
-    fun addMessages(messageСhatId: Int, userFio: String, message: String) {
+    fun addMessages(messageСhatId: Int, userFio: String, message: String): Int {
         val message = Messages(
             messageId = mId++,
             messageСhatId = messageСhatId,
@@ -129,6 +132,8 @@ object ChatService {
         chats
             .find { it.chatId == messageСhatId }
             ?.messages?.add(message)
+
+        return messageСhatId
     }
 
     //Получить список сообщений из чата, указав(п.4):
@@ -141,14 +146,26 @@ object ChatService {
     //    message.forEach { it.readingStatus == true }
     //    return message
     //}
-    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {
+
+    //fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {
+    //    val chat = chats
+    //        .find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
+    //    val message = chat.messages
+    //        .filter { it.authorMessageId == authorMessageId }
+    //        .take(count)
+
+    //    message.forEach { it.readingStatus == true }
+    //    return message
+    //}
+
+    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): Sequence<Messages> {
         val chat = chats
-            .find { it.chatId == chatId } ?: throw ChatNotFoundException("Чат не найден")
+            .find { it.chatId==chatId } ?: throw ChatNotFoundException("Чат не найден")
         val message = chat.messages
+            .asSequence()
             .filter { it.authorMessageId == authorMessageId }
             .take(count)
-
-        message.forEach { it.readingStatus == true }
+            .onEach { it.readingStatus == true }
         return message
     }
 
