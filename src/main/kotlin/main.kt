@@ -158,7 +158,7 @@ object ChatService {
     //    return message
     //}
 
-    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): Sequence<Messages> {
+    fun getMessageInfo(chatId: Int, authorMessageId: Int, count: Int): List<Messages> {
         val chat = chats
             .find { it.chatId==chatId } ?: throw ChatNotFoundException("Чат не найден")
         val message = chat.messages
@@ -166,6 +166,7 @@ object ChatService {
             .filter { it.authorMessageId == authorMessageId }
             .take(count)
             .onEach { it.readingStatus == true }
+            .toList()
         return message
     }
 
